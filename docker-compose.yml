@@ -1,0 +1,28 @@
+services:
+ api:
+  image: alexandraisaksson/todo-api:1.0
+  container_name: todo_application_api
+  depends_on:
+      db:
+        condition: service_healthy
+ db:
+   image: alexandraisaksson/todo-database:1.0
+   container_name: todo_application_db
+   environment:
+     - MYSQL_ROOT_PASSWORD=superSecretPassword
+     - MYSQL_DATABASE=pinkFlamingosDatabase
+   healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+   volumes:
+     - ./db:/var/lib/mysql
+ nginx:
+    image: alexandraisaksson/todo-reverse-proxy:1.0
+    container_name: todo_application_proxy
+    ports:
+      - "1337:1337"
+    depends_on:
+      - api
